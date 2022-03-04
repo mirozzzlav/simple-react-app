@@ -1,46 +1,37 @@
-import './App.css';
-import {List} from './pages/list'
-import {AddProduct} from './pages/add'
-import {EditProduct} from './pages/edit'
+import React from 'react';
 import {
-  BrowserRouter as Router,
-  Switch,
-  Route
-} from "react-router-dom";
-import {useState} from 'react';
-import {ProductsState} from './ProductState'
-import {FavouritesState, DEFAULT_FAVOURITES} from './FavouritesState'
-import {ProductCategoryContext, FavouritesContext, DEFAULT_CATEGORIES} from './context'
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom';
 
-function App() {
-  
-  const [productsList, setList] = useState(ProductsState.getDefaultProductsList());
-  const productsState = ProductsState(productsList, setList);
-  const productCategories = DEFAULT_CATEGORIES;
-  const [favourites, setFavourites] = useState(DEFAULT_FAVOURITES);  
-  const favouritesState = FavouritesState(favourites, setFavourites);
-  
+import AddProductPage from 'pages/AddProduct';
+
+import ProductContextProvider from 'context/ProductContext';
+import FilterContextProvider from 'context/FilterContext';
+import FavouritesContextProvider from 'context/FavouritesContext';
+import List from 'pages/List';
+import EditProductPage from 'pages/EditProduct';
+import { Container } from '@chakra-ui/react';
+
+const App = function () {
   return (
-    <ProductCategoryContext.Provider value={productCategories}>
-      <FavouritesContext.Provider value={favouritesState}>
-      <div id="app">
-        <Router>
-          <Switch>
-            <Route exact path="/"><List listItems={productsList} deleteFunc={(productId) => productsState.deleteProduct(productId)}/></Route>
-            <Route exact path="/add">
-              <AddProduct onFormSubmit={(product) => productsState.addNewProduct(product)} getProduct={() => productsState.createNewProduct()} />
-            </Route>
-            <Route exact path="/edit/:productId">
-              <EditProduct onFormSubmit={(product) => productsState.editProduct(product)} 
-                getProduct={(productId) => productsState.getProduct(productId)}/>
-            </Route>
-          </Switch>
-        </Router>
-      </div>
-      </FavouritesContext.Provider>
-    </ProductCategoryContext.Provider>
+    <Container maxW="container.xl" margin="10px">
+      <ProductContextProvider>
+        <FilterContextProvider>
+          <FavouritesContextProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route exact path="/" element={<List />} />
+                <Route exact path="/add" element={<AddProductPage />} />
+                <Route exact path="/edit/:productId" element={<EditProductPage />} />
+              </Routes>
+            </BrowserRouter>
+          </FavouritesContextProvider>
+        </FilterContextProvider>
+      </ProductContextProvider>
+    </Container>
   );
-}
-
+};
 
 export default App;

@@ -1,56 +1,66 @@
-import './Product.css'
-import React, {useCallback} from 'react';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import {Link} from 'react-router-dom';
-import {FavouritesContext, ProductCategoryContext} from '../../context'
+import React, { useCallback, useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { DeleteIcon, EditIcon, StarIcon } from '@chakra-ui/icons';
+import { FavouritesContext } from 'context/FavouritesContext';
+import { ProductContext } from 'context/ProductContext';
+import {
+  Box, Heading, IconButton, Flex, Button, Text,
+} from '@chakra-ui/react';
+import { CATEGORIES } from './ProductDefinition';
 
-function productContent(product, displayValues = {}) {
-    let ret = [];
-    for (const [productProp, productPropVal] of Object.entries(product)) {
-        if (productProp === 'name') {
-            continue;
-        }
-        const displayValue = displayValues[productPropVal] !== undefined ? displayValues[productPropVal] : productPropVal;
-        ret = [...ret, <div key={productProp}><span>{productProp}</span>{displayValue}</div>]
+function productContent(product) {
+  let ret = [];
+  for (const [productProp, productPropVal] of Object.entries(product)) {
+    if (productProp === 'name') {
+      continue;
     }
-
-    return ret;
+    const displayValue = CATEGORIES[productPropVal] !== undefined
+      ? CATEGORIES[productPropVal] : productPropVal;
+    ret = [...ret,
+      <Flex key={productProp}>
+        <Text fontWeight="600" marginRight={2}>
+          {productProp}
+          :
+        </Text>
+        {displayValue}
+      </Flex>,
+    ];
+  }
+  return ret;
 }
 
- 
-function Product({product, deleteFunc}) {
-    const {isFavourite, addToFavourites, deleteFromFavourites} = React.useContext(FavouritesContext);
-    const categories = React.useContext(ProductCategoryContext);
+const Product = function ({ product }) {
+  const {
+    isFavourite,
+    addToFavourites,
+    deleteFromFavourites,
+  } = React.useContext(FavouritesContext);
 
-    const onFavouriteClicked = useCallback((productId) => {
-        productId = parseInt(productId);
-        if (isFavourite(productId)) {
-            deleteFromFavourites(productId);
-        } else {
-            addToFavourites(productId);
-        }
-    }, [isFavourite, addToFavourites, deleteFromFavourites]);
+  const { deleteProduct } = useContext(ProductContext);
+  const onFavouriteClicked = useCallback((productId) => {
+    productId = parseInt(productId);
+    if (isFavourite(productId)) {
+      deleteFromFavourites(productId);
+    } else {
+      addToFavourites(productId);
+    }
+  }, [isFavourite, addToFavourites, deleteFromFavourites]);
 
-    return (
-        <div className="product shadow-box">
-            <h2>{product.name}</h2>
-            <div className="info">{productContent(product, categories)}</div>
-            <div className="actions">
-                <Link to={`/edit/${product.id}`}>
-                    <EditIcon fontSize="small" />
-                </Link>
-                <button className="icon-btn" onClick={() => {deleteFunc(product.id);}}>
-                    <DeleteIcon fontSize="small"/>
-                </button>
-                <button className={`icon-btn favourite${isFavourite(product.id) ? ' active' : ''}`} 
-                    onClick={() => onFavouriteClicked(product.id)}>
-                    <FavoriteIcon fontSize="small" />
-                </button>
-            </div>
-        </div>
-    );
-}
+  return (
+    <Box borderWidth="1px" borderRadius="lg" padding={5} maxW="lg">
+      <Heading size="lg" marginBottom={2}>{product.name}</Heading>
+      <div>{productContent(product)}</div>
+      <Flex>
+        <Button margin={1}><Link to={`/edit/${product.id}`}><EditIcon /></Link></Button>
+        <IconButton margin={1} icon={<DeleteIcon />} onClick={() => { deleteProduct(product.id); }} />
+        <IconButton
+          margin={1}
+          icon={<StarIcon color={isFavourite(product.id) ? 'yellow.500' : 'currentColor'} />}
+          onClick={() => onFavouriteClicked(product.id)}
+        />
+      </Flex>
+    </Box>
+  );
+};
 
-export {Product};
+export { Product };
